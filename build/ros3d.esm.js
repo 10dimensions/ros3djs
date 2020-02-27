@@ -54561,9 +54561,7 @@ var MarkerClient = /*@__PURE__*/(function (EventEmitter2) {
   MarkerClient.prototype.checkTime = function checkTime (name){
       var curTime = new Date().getTime();
       if (curTime - this.updatedTime[name] > this.lifetime) {
-          var oldNode = this.markers[name];
-          oldNode.unsubscribeTf();
-          this.rootObject.remove(oldNode);
+          this.removeMarker(name);
           this.emit('change');
       } else {
           var that = this;
@@ -54588,8 +54586,8 @@ var MarkerClient = /*@__PURE__*/(function (EventEmitter2) {
     var oldNode = this.markers[message.ns + message.id];
     this.updatedTime[message.ns + message.id] = new Date().getTime();
     if (oldNode) {
-      oldNode.unsubscribeTf();
-      this.rootObject.remove(oldNode);
+      this.removeMarker(message.ns + message.id);
+
     } else if (this.lifetime) {
       this.checkTime(message.ns + message.id);
     }
@@ -54609,6 +54607,15 @@ var MarkerClient = /*@__PURE__*/(function (EventEmitter2) {
     }
 
     this.emit('change');
+  };
+  MarkerClient.prototype.removeMarker = function removeMarker (key) {
+    var oldNode = this.markers[key];
+    oldNode.unsubscribeTf();
+    this.rootObject.remove(oldNode);
+    oldNode.children.forEach(function (child) {
+      child.dispose();
+    });
+    delete(this.markers[key]);
   };
 
   return MarkerClient;
@@ -54885,6 +54892,8 @@ var OccupancyGridClient = /*@__PURE__*/(function (EventEmitter2) {
     this.color = options.color || {r:255,g:255,b:255};
     this.opacity = options.opacity || 1.0;
 
+    this.name = options.name;
+
     // current grid that is displayed
     this.currentGrid = null;
 
@@ -54943,6 +54952,8 @@ var OccupancyGridClient = /*@__PURE__*/(function (EventEmitter2) {
     } else {
       this.sceneNode = this.currentGrid = newGrid;
     }
+
+    this.sceneNode = this.name;
 
     this.rootObject.add(this.sceneNode);
 
@@ -55684,6 +55695,7 @@ var PointCloud2 = /*@__PURE__*/(function (superclass) {
     options = options || {};
     this.ros = options.ros;
     this.topicName = options.topic || '/points';
+    this.throttle_rate = options.throttle_rate || null;
     this.compression = options.compression || 'cbor';
     this.max_pts = options.max_pts || 10000;
     this.points = new Points$1(options);
@@ -55709,6 +55721,7 @@ var PointCloud2 = /*@__PURE__*/(function (superclass) {
       ros : this.ros,
       name : this.topicName,
       messageType : 'sensor_msgs/PointCloud2',
+      throttle_rate : this.throttle_rate,
       queue_length : 1,
       compression: this.compression
     });
@@ -55862,29 +55875,7 @@ var Urdf = /*@__PURE__*/(function (superclass) {
               console.warn('Could not load geometry mesh: '+uri);
             }
           } else {
-            if (!colorMaterial) {
-              colorMaterial = makeColorMaterial(0, 0, 0, 1);
-            }
-            var shapeMesh;
-            // Create a shape
-            switch (visual.geometry.type) {
-              case URDF_BOX:
-                var dimension = visual.geometry.dimension;
-                var cube = new THREE$1.BoxGeometry(dimension.x, dimension.y, dimension.z);
-                shapeMesh = new THREE$1.Mesh(cube, colorMaterial);
-                break;
-              case URDF_CYLINDER:
-                var radius = visual.geometry.radius;
-                var length = visual.geometry.length;
-                var cylinder = new THREE$1.CylinderGeometry(radius, radius, length, 16, 1, false);
-                shapeMesh = new THREE$1.Mesh(cylinder, colorMaterial);
-                shapeMesh.quaternion.setFromAxisAngle(new THREE$1.Vector3(1, 0, 0), Math.PI * 0.5);
-                break;
-              case URDF_SPHERE:
-                var sphere = new THREE$1.SphereGeometry(visual.geometry.radius, 16);
-                shapeMesh = new THREE$1.Mesh(sphere, colorMaterial);
-                break;
-            }
+            var shapeMesh = this.createShapeMesh(visual);
             // Create a scene node with the shape
             var scene = new SceneNode({
               frameID: frameID,
@@ -55902,6 +55893,35 @@ var Urdf = /*@__PURE__*/(function (superclass) {
   if ( superclass ) Urdf.__proto__ = superclass;
   Urdf.prototype = Object.create( superclass && superclass.prototype );
   Urdf.prototype.constructor = Urdf;
+  Urdf.prototype.createShapeMesh = function createShapeMesh (visual) {
+    var colorMaterial = null;
+    if (!colorMaterial) {
+      colorMaterial = makeColorMaterial(0, 0, 0, 1);
+    }
+    var shapeMesh;
+    // Create a shape
+    switch (visual.geometry.type) {
+      case URDF_BOX:
+        var dimension = visual.geometry.dimension;
+        var cube = new THREE$1.BoxGeometry(dimension.x, dimension.y, dimension.z);
+        shapeMesh = new THREE$1.Mesh(cube, colorMaterial);
+        break;
+      case URDF_CYLINDER:
+        var radius = visual.geometry.radius;
+        var length = visual.geometry.length;
+        var cylinder = new THREE$1.CylinderGeometry(radius, radius, length, 16, 1, false);
+        shapeMesh = new THREE$1.Mesh(cylinder, colorMaterial);
+        shapeMesh.quaternion.setFromAxisAngle(new THREE$1.Vector3(1, 0, 0), Math.PI * 0.5);
+        break;
+      case URDF_SPHERE:
+        var sphere = new THREE$1.SphereGeometry(visual.geometry.radius, 16);
+        shapeMesh = new THREE$1.Mesh(sphere, colorMaterial);
+        break;
+    }
+
+    return shapeMesh;
+  };
+
   Urdf.prototype.unsubscribeTf = function unsubscribeTf () {
     this.children.forEach(function(n) {
       if (typeof n.unsubscribeTf === 'function') { n.unsubscribeTf(); }

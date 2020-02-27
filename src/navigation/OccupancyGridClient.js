@@ -35,6 +35,8 @@ ROS3D.OccupancyGridClient = function(options) {
   this.color = options.color || {r:255,g:255,b:255};
   this.opacity = options.opacity || 1.0;
 
+  this.name = options.name;
+
   // current grid that is displayed
   this.currentGrid = null;
 
@@ -93,6 +95,8 @@ ROS3D.OccupancyGridClient.prototype.processMessage = function(message){
   } else {
     this.sceneNode = this.currentGrid = newGrid;
   }
+
+  this.sceneNode = this.name;
 
   this.rootObject.add(this.sceneNode);
 
