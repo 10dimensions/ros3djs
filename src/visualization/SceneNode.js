@@ -21,6 +21,7 @@ ROS3D.SceneNode = function(options) {
   this.tfClient = options.tfClient;
   this.frameID = options.frameID;
   var object = options.object;
+  this.name = options.name || '';
   this.pose = options.pose || new ROSLIB.Pose();
 
   // Do not render this object until we receive a TF update
@@ -28,6 +29,8 @@ ROS3D.SceneNode = function(options) {
 
   // add the model
   this.add(object);
+
+  object.name = this.name;
 
   // set the inital pose
   this.updatePose(this.pose);

@@ -54390,6 +54390,7 @@ var SceneNode = /*@__PURE__*/(function (superclass) {
     this.tfClient = options.tfClient;
     this.frameID = options.frameID;
     var object = options.object;
+    this.name = options.name || '';
     this.pose = options.pose || new ROSLIB.Pose();
 
     // Do not render this object until we receive a TF update
@@ -54397,6 +54398,8 @@ var SceneNode = /*@__PURE__*/(function (superclass) {
 
     // add the model
     this.add(object);
+
+    object.name = this.name;
 
     // set the inital pose
     this.updatePose(this.pose);
@@ -55503,6 +55506,8 @@ var Points$1 = /*@__PURE__*/(function (superclass) {
     this.colorsrc = options.colorsrc;
     this.colormap = options.colormap;
 
+    this.name = options.name || '';
+
     if(('color' in options) || ('size' in options) || ('texture' in options)) {
         console.warn(
           'toplevel "color", "size" and "texture" options are deprecated.' +
@@ -55573,6 +55578,8 @@ var Points$1 = /*@__PURE__*/(function (superclass) {
           });
 
           this.rootObject.add(this.sn);
+      
+          this.sn.name = this.name;
       }
       return (this.messageCount++ % this.messageRatio) === 0;
   };
@@ -55951,6 +55958,8 @@ var UrdfClient = function UrdfClient(options) {
   this.tfPrefix = options.tfPrefix || '';
   this.loader = options.loader;
 
+  this.name = options.name || 'turtlebot';
+
   // get the URDF value from ROS
   var getParam = new ROSLIB.Param({
     ros : ros,
@@ -55971,6 +55980,9 @@ var UrdfClient = function UrdfClient(options) {
       loader : that.loader
     });
     that.rootObject.add(that.urdf);
+    
+    that.urdf.name = that.name;
+
   });
 };
 
@@ -56344,6 +56356,8 @@ var OrbitControls = /*@__PURE__*/(function (superclass) {
     // In ROS, z is pointing upwards
     this.camera.up = new THREE$1.Vector3(0, 0, 1);
 
+    this.enabled = true;
+
     // internals
     var pixelsPerRound = 1800;
     var touchMoveThreshold = 10;
@@ -56392,6 +56406,12 @@ var OrbitControls = /*@__PURE__*/(function (superclass) {
      * @param event3D - the 3D event to handle
      */
     function onMouseDown(event3D) {
+      
+      if(that.enabled === false)
+      {   
+        return;
+      }
+      
       var event = event3D.domEvent;
       event.preventDefault();
 
@@ -56419,7 +56439,7 @@ var OrbitControls = /*@__PURE__*/(function (superclass) {
           break;
       }
 
-      this.showAxes();
+      //this.showAxes();
     }
 
     /**
@@ -56428,6 +56448,12 @@ var OrbitControls = /*@__PURE__*/(function (superclass) {
      * @param event3D - the 3D event to handle
      */
     function onMouseMove(event3D) {
+      
+      if(that.enabled === false)
+      {   
+        return;
+      }
+      
       var event = event3D.domEvent;
       if (state === STATE.ROTATE) {
 
@@ -56438,7 +56464,7 @@ var OrbitControls = /*@__PURE__*/(function (superclass) {
         that.rotateUp(2 * Math.PI * rotateDelta.y / pixelsPerRound * that.userRotateSpeed);
 
         rotateStart.copy(rotateEnd);
-        this.showAxes();
+        //this.showAxes();
       } else if (state === STATE.ZOOM) {
         zoomEnd.set(event.clientX, event.clientY);
         zoomDelta.subVectors(zoomEnd, zoomStart);
@@ -56450,7 +56476,7 @@ var OrbitControls = /*@__PURE__*/(function (superclass) {
         }
 
         zoomStart.copy(zoomEnd);
-        this.showAxes();
+        //this.showAxes();
 
       } else if (state === STATE.MOVE) {
         var intersection = intersectViewPlane(event3D.mouseRay, that.center, moveStartNormal);
@@ -56466,7 +56492,7 @@ var OrbitControls = /*@__PURE__*/(function (superclass) {
         that.camera.position.addVectors(moveStartPosition.clone(), delta.clone());
         that.update();
         that.camera.updateMatrixWorld();
-        this.showAxes();
+        //this.showAxes();
       }
     }
 
@@ -56479,6 +56505,11 @@ var OrbitControls = /*@__PURE__*/(function (superclass) {
      * @returns the intersection
      */
     function intersectViewPlane(mouseRay, planeOrigin, planeNormal) {
+
+      if(that.enabled === false)
+      {   
+        return;
+      }
 
       var vector = new THREE$1.Vector3();
       var intersection = new THREE$1.Vector3();
@@ -56504,6 +56535,12 @@ var OrbitControls = /*@__PURE__*/(function (superclass) {
      * @param event3D - the 3D event to handle
      */
     function onMouseUp(event3D) {
+      
+      if(that.enabled === false)
+      {   
+        return;
+      }
+      
       if (!that.userRotate) {
         return;
       }
@@ -56517,6 +56554,12 @@ var OrbitControls = /*@__PURE__*/(function (superclass) {
      * @param event3D - the 3D event to handle
      */
     function onMouseWheel(event3D) {
+      
+      if(that.enabled === false)
+      {   
+        return;
+      }
+
       if (!that.userZoom) {
         return;
       }
@@ -56535,7 +56578,7 @@ var OrbitControls = /*@__PURE__*/(function (superclass) {
         that.zoomOut();
       }
 
-      this.showAxes();
+      //this.showAxes();
     }
 
     /**
@@ -56544,6 +56587,12 @@ var OrbitControls = /*@__PURE__*/(function (superclass) {
      * @param event3D - the 3D event to handle
      */
     function onTouchDown(event3D) {
+      
+      if(that.enabled === false)
+      {   
+        return;
+      }
+      
       var event = event3D.domEvent;
       switch (event.touches.length) {
         case 1:
@@ -56571,7 +56620,7 @@ var OrbitControls = /*@__PURE__*/(function (superclass) {
           break;
       }
 
-      this.showAxes();
+      //this.showAxes();
 
       event.preventDefault();
     }
@@ -56582,6 +56631,12 @@ var OrbitControls = /*@__PURE__*/(function (superclass) {
      * @param event3D - the 3D event to handle
      */
     function onTouchMove(event3D) {
+      
+      if(that.enabled === false)
+      {   
+        return;
+      }
+      
       var event = event3D.domEvent;
       if (state === STATE.ROTATE) {
 
@@ -56592,7 +56647,7 @@ var OrbitControls = /*@__PURE__*/(function (superclass) {
         that.rotateUp(2 * Math.PI * rotateDelta.y / pixelsPerRound * that.userRotateSpeed);
 
         rotateStart.copy(rotateEnd);
-        this.showAxes();
+        //this.showAxes();
       } else {
         touchMoveVector[0].set(touchStartPosition[0].x - event.touches[0].pageX,
                                touchStartPosition[0].y - event.touches[0].pageY);
@@ -56639,13 +56694,19 @@ var OrbitControls = /*@__PURE__*/(function (superclass) {
           that.camera.updateMatrixWorld();
         }
 
-        this.showAxes();
+        //this.showAxes();
 
         event.preventDefault();
       }
     }
 
     function onTouchEnd(event3D) {
+      
+      if(that.enabled === false)
+      {   
+        return;
+      }
+      
       var event = event3D.domEvent;
       if (event.touches.length === 1 &&
           state !== STATE.ROTATE) {
@@ -56762,6 +56823,12 @@ var OrbitControls = /*@__PURE__*/(function (superclass) {
    * Update the camera to the current settings.
    */
   OrbitControls.prototype.update = function update () {
+    
+    if(this.enabled === false)
+    {   
+      return;
+    }
+    
     // x->y, y->z, z->x
     var position = this.camera.position;
     var offset = position.clone().sub(this.center);

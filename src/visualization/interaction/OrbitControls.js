@@ -41,6 +41,8 @@ ROS3D.OrbitControls = function(options) {
   // In ROS, z is pointing upwards
   this.camera.up = new THREE.Vector3(0, 0, 1);
 
+  this.enabled = true;
+
   // internals
   var pixelsPerRound = 1800;
   var touchMoveThreshold = 10;
@@ -89,6 +91,12 @@ ROS3D.OrbitControls = function(options) {
    * @param event3D - the 3D event to handle
    */
   function onMouseDown(event3D) {
+    
+    if(that.enabled === false)
+    {   
+      return;
+    }
+    
     var event = event3D.domEvent;
     event.preventDefault();
 
@@ -116,7 +124,7 @@ ROS3D.OrbitControls = function(options) {
         break;
     }
 
-    this.showAxes();
+    //this.showAxes();
   }
 
   /**
@@ -125,6 +133,12 @@ ROS3D.OrbitControls = function(options) {
    * @param event3D - the 3D event to handle
    */
   function onMouseMove(event3D) {
+    
+    if(that.enabled === false)
+    {   
+      return;
+    }
+    
     var event = event3D.domEvent;
     if (state === STATE.ROTATE) {
 
@@ -135,7 +149,7 @@ ROS3D.OrbitControls = function(options) {
       that.rotateUp(2 * Math.PI * rotateDelta.y / pixelsPerRound * that.userRotateSpeed);
 
       rotateStart.copy(rotateEnd);
-      this.showAxes();
+      //this.showAxes();
     } else if (state === STATE.ZOOM) {
       zoomEnd.set(event.clientX, event.clientY);
       zoomDelta.subVectors(zoomEnd, zoomStart);
@@ -147,7 +161,7 @@ ROS3D.OrbitControls = function(options) {
       }
 
       zoomStart.copy(zoomEnd);
-      this.showAxes();
+      //this.showAxes();
 
     } else if (state === STATE.MOVE) {
       var intersection = intersectViewPlane(event3D.mouseRay, that.center, moveStartNormal);
@@ -163,7 +177,7 @@ ROS3D.OrbitControls = function(options) {
       that.camera.position.addVectors(moveStartPosition.clone(), delta.clone());
       that.update();
       that.camera.updateMatrixWorld();
-      this.showAxes();
+      //this.showAxes();
     }
   }
 
@@ -176,6 +190,11 @@ ROS3D.OrbitControls = function(options) {
    * @returns the intersection
    */
   function intersectViewPlane(mouseRay, planeOrigin, planeNormal) {
+
+    if(that.enabled === false)
+    {   
+      return;
+    }
 
     var vector = new THREE.Vector3();
     var intersection = new THREE.Vector3();
@@ -201,6 +220,12 @@ ROS3D.OrbitControls = function(options) {
    * @param event3D - the 3D event to handle
    */
   function onMouseUp(event3D) {
+    
+    if(that.enabled === false)
+    {   
+      return;
+    }
+    
     if (!that.userRotate) {
       return;
     }
@@ -214,6 +239,12 @@ ROS3D.OrbitControls = function(options) {
    * @param event3D - the 3D event to handle
    */
   function onMouseWheel(event3D) {
+    
+    if(that.enabled === false)
+    {   
+      return;
+    }
+
     if (!that.userZoom) {
       return;
     }
@@ -232,7 +263,7 @@ ROS3D.OrbitControls = function(options) {
       that.zoomOut();
     }
 
-    this.showAxes();
+    //this.showAxes();
   }
 
   /**
@@ -241,6 +272,12 @@ ROS3D.OrbitControls = function(options) {
    * @param event3D - the 3D event to handle
    */
   function onTouchDown(event3D) {
+    
+    if(that.enabled === false)
+    {   
+      return;
+    }
+    
     var event = event3D.domEvent;
     switch (event.touches.length) {
       case 1:
@@ -268,7 +305,7 @@ ROS3D.OrbitControls = function(options) {
         break;
     }
 
-    this.showAxes();
+    //this.showAxes();
 
     event.preventDefault();
   }
@@ -279,6 +316,12 @@ ROS3D.OrbitControls = function(options) {
    * @param event3D - the 3D event to handle
    */
   function onTouchMove(event3D) {
+    
+    if(that.enabled === false)
+    {   
+      return;
+    }
+    
     var event = event3D.domEvent;
     if (state === STATE.ROTATE) {
 
@@ -289,7 +332,7 @@ ROS3D.OrbitControls = function(options) {
       that.rotateUp(2 * Math.PI * rotateDelta.y / pixelsPerRound * that.userRotateSpeed);
 
       rotateStart.copy(rotateEnd);
-      this.showAxes();
+      //this.showAxes();
     } else {
       touchMoveVector[0].set(touchStartPosition[0].x - event.touches[0].pageX,
                              touchStartPosition[0].y - event.touches[0].pageY);
@@ -336,13 +379,19 @@ ROS3D.OrbitControls = function(options) {
         that.camera.updateMatrixWorld();
       }
 
-      this.showAxes();
+      //this.showAxes();
 
       event.preventDefault();
     }
   }
 
   function onTouchEnd(event3D) {
+    
+    if(that.enabled === false)
+    {   
+      return;
+    }
+    
     var event = event3D.domEvent;
     if (event.touches.length === 1 &&
         state !== STATE.ROTATE) {
@@ -463,6 +512,12 @@ ROS3D.OrbitControls.prototype.zoomOut = function(zoomScale) {
  * Update the camera to the current settings.
  */
 ROS3D.OrbitControls.prototype.update = function() {
+  
+  if(this.enabled === false)
+  {   
+    return;
+  }
+  
   // x->y, y->z, z->x
   var position = this.camera.position;
   var offset = position.clone().sub(this.center);

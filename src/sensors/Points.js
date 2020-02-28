@@ -31,6 +31,8 @@ ROS3D.Points = function(options) {
   this.colorsrc = options.colorsrc;
   this.colormap = options.colormap;
 
+  this.name = options.name || '';
+
   if(('color' in options) || ('size' in options) || ('texture' in options)) {
       console.warn(
         'toplevel "color", "size" and "texture" options are deprecated.' +
@@ -99,6 +101,8 @@ ROS3D.Points.prototype.setup = function(frame, point_step, fields)
         });
 
         this.rootObject.add(this.sn);
+    
+        this.sn.name = this.name;
     }
     return (this.messageCount++ % this.messageRatio) === 0;
 };

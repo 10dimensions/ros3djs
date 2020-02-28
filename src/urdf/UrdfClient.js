@@ -33,6 +33,8 @@ ROS3D.UrdfClient = function(options) {
   this.tfPrefix = options.tfPrefix || '';
   this.loader = options.loader;
 
+  this.name = options.name || 'turtlebot';
+
   // get the URDF value from ROS
   var getParam = new ROSLIB.Param({
     ros : ros,
@@ -53,5 +55,8 @@ ROS3D.UrdfClient = function(options) {
       loader : that.loader
     });
     that.rootObject.add(that.urdf);
+  
+    that.urdf.name = that.name;
+
   });
 };
